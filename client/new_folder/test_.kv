@@ -1,0 +1,24 @@
+<Button_>:
+    md_bg_color: 1, 0, 1, 1
+
+<ListItemFile>:
+    IconLeftWidget:
+        icon: root.icon
+
+
+ScreenManager:
+    id: screen_mng
+    Screen:
+        name: 'scr 1'
+        Button_:
+            screen_mng: screen_mng
+            text: 'scr 2'
+            on_release:
+                screen_mng.current = 'scr 2'
+    Screen_:
+        list: container_
+        name: 'scr 2'
+        on_pre_enter: self.load_list_files()
+        ScrollView:
+            MDList:
+                id: container_
