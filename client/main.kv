@@ -1,5 +1,4 @@
 <RV>:
-
     viewclass: 'ListItemFile'
     RecycleBoxLayout:
         default_size: None, dp(56)
@@ -8,38 +7,47 @@
         height: self.minimum_height
         orientation: 'vertical'
 
+
 <ListItemFile>:
     IconLeftWidget:
         icon: root.icon
-
-<ContentNavigationDrawer>:
-    ScrollView:
-
-        MDList:
-            OneLineListItem:
-                text: "Screen 1"
-                on_press:
-                    app.root.ids.nav_drawer.set_state("close")
-                    app.root.ids.screen_manager.current = "scr 1"
-            OneLineListItem:
-                text: "File manager"
-                on_press:
-                    app.root.ids.nav_drawer.__self__.set_state("close")
-                    app.root.ids.screen_manager.__self__.current = "file_manager"
-            OneLineListItem:
-                text: "Screen 3"
-                on_press:
-                    app.root.ids.nav_drawer.__self__.set_state("close")
-                    app.root.ids.screen_manager.__self__.current = "scr 3"
-
-
 
 
 <RaisedButton>:
     md_bg_color: 1, 0, 0, 1
 
+
+<ChooseScreenButton>:
+    size_hint_x: 0.20
+    on_release: root.choose_screen()
+
+
+<MainScreen>:
+    name: "mainscreen"
+    BoxLayout:
+        orientation: 'vertical'
+        MDGridLayout:
+            rows: 2
+            padding: 10
+            ChooseScreenButton:
+                text: 'Photos'
+            ChooseScreenButton:
+                text: 'Videos'
+            ChooseScreenButton:
+                text: 'Documents'
+            ChooseScreenButton:
+                text: 'Music'
+            ChooseScreenButton:
+                text: 'Downloads'
+            ChooseScreenButton:
+                text: 'File storage'
+            ChooseScreenButton:
+                text: 'Home'
+
+
 <FScreen>:
     list_with_files: rv.__self__
+    on_pre_enter: rv.update()
     name: "file_manager"
     BoxLayout:
         orientation: 'vertical'
@@ -53,44 +61,27 @@
                 root.directory_come_back()
         RV:
             id: rv
-Screen:
-    BoxLayout:
-        orientation: 'vertical'
-
-        Toolbar:
-            id: toolbar
-            screen_manager: screen_manager.__self__
-            title: 'File Manger'
-            pos_hint: {"top": 1}
-            elevation: 10
-            left_action_items: [["menu", lambda x: nav_drawer.set_state("open")]]
-            right_action_items: [["file", lambda x: self.set_screen_from_toolbar('file_manager')], ["file-cloud", lambda x: self.set_screen_from_toolbar('scr 3')]]
+BoxLayout:
+    orientation: 'vertical'
+    Toolbar:
+        id: toolbar
+        screen_manager: screen_manager.__self__
+        title: 'File Manger'
+        pos_hint: {"top": 1}
+        elevation: 10
+        right_action_items: [["file", lambda x: self.set_screen_from_toolbar('mainscreen')],["file", lambda x: self.set_screen_from_toolbar('file_manager')], ["file-cloud", lambda x: self.set_screen_from_toolbar('scr 3')]]
 
 
-        NavigationLayout:
-            id: NavLayout
-            x: toolbar.height
 
-            ScreenManager:
-                id: screen_manager
-                Screen:
-                    name: "scr 1"
-                    RaisedButton:
-                        pos_hint: {"center_x": .5, "center_y": .5}
-                        text: "Screen 1"
-
-                FScreen:
-                    id: fscreen
-
-                Screen:
-                    name: "scr 3"
-                    RaisedButton:
-                        text: "Screen 3"
+    ScreenManager:
+        id: screen_manager
+        MainScreen:
+            id: mainscreen
+        FScreen:
+            id: fscreen
+        Screen:
+            name: "scr 3"
+            RaisedButton:
+                text: "Screen 3"
 
 
-            MDNavigationDrawer:
-                id: nav_drawer
-
-                ContentNavigationDrawer:
-                    screen_manager: screen_manager.__self__
-                    nav_drawer: nav_drawer.__self__

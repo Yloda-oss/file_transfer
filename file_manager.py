@@ -1,21 +1,35 @@
-import os.path
 import os
 import shutil
 import sys
 from mimetypes import MimeTypes
 from pathlib import Path
+
+from plyer import storagepath
+
+paths = {'Music': storagepath.get_music_dir(),
+         'Documents': storagepath.get_documents_dir(),
+         'Downloads': storagepath.get_downloads_dir(),
+         'Photos': storagepath.get_pictures_dir(),
+         'Videos': storagepath.get_videos_dir(),
+         'File storage': storagepath.get_external_storage_dir(),
+         'Home': storagepath.get_home_dir()}
+
 try:
-    from android.storage import primary_external_storage_path
-    settings_path = Path(primary_external_storage_path())
-except ImportError:
-    settings_path = Path.cwd()
+    import android
+
+    paths['File storage'] = Path(paths['File storage'])
+except:
+    paths['File storage'] = paths['Home']
+
 
 class FileManagerLocal:
-    def __init__(self, current_dir=settings_path):
+    def __init__(self, current_dir=paths['File storage']):
         self.system = sys.platform
         self.current_dir = Path(current_dir)
         self.magic = MimeTypes()
         self.history_navigation = []
+        self.paths = paths
+        self.cache = []
 
     def update_current_dir(self):
         self.current_dir = Path.cwd()
@@ -26,7 +40,8 @@ class FileManagerLocal:
 
     def edit_current_dir(self, directory):
         # relative and absolute
-        self.history_navigation.append(self.current_dir)
+        if directory != self.current_dir:
+            self.history_navigation.append(self.current_dir)
         if Path(directory).is_absolute():
             os.chdir(directory)
         else:
@@ -120,4 +135,3 @@ class FileManagerLocal:
 
     def open_file(self, file: Path):
         os.startfile(str(file))
-
