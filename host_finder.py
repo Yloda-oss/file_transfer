@@ -1,56 +1,28 @@
-import os
-import platform
+import ipaddress
 import socket
-import threading
 
-import ipcalc
-import netifaces
-
+from pyroute2 import IPRoute
+import scapy.all
 import config
 
 
 class HostFinder:
     def __init__(self):
+        self.server = None
         self.ip = self.get_ip()
-        self.current_interface = self._get_current_interface()
+        self.network = ipaddress.ip_interface(self.get_network() + '/' + self.get_netmask())
 
     def get_server(self):
-        good_hosts = []
-
-        def scan_ip(ip):
-            ip = str(ip)
-            comm = ping_com + ip
-            response = os.popen(comm)
-            data = response.readlines()
-            for line in data:
-                if 'TTL' in line:
-                    good_hosts.append(ip)
-                    break
-
-        def get_list_ip():
-            netmask = self.current_interface['netmask']
-            list_ip = ipcalc.Network(self.ip, netmask)
-            return list_ip
-
-        list_ip = get_list_ip()
-        system = platform.system()
-        if (system == "Windows"):
-            ping_com = "ping -n 1 "
-        else:
-            ping_com = "ping -c 1 "
-
-        for ip in list_ip:
-            if ip == self.ip:
-                continue
-            thread = threading.Thread(target=scan_ip, args=[ip])
-            thread.start()
-
-        thread.join()
-        for ip in good_hosts:
+        answers = \
+            scapy.all.srp(scapy.all.Ether(dst="ff:ff:ff:ff:ff:ff") / scapy.all.ARP(pdst=self.network.network),
+                          timeout=4)[
+                0]
+        for ip in answers:
             try:
                 sock = socket.socket()
                 sock.connect((ip, config.PORT))
                 sock.close()
+                self.server = ip
                 return ip
             except:
                 continue
@@ -58,29 +30,21 @@ class HostFinder:
 
     def get_ip(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        try:
-            # doesn't even have to be reachable
-            s.connect(('10.255.255.255', 1))
-            IP = s.getsockname()[0]
-        except Exception:
-            IP = '127.0.0.1'
-        finally:
-            s.close()
-        return IP
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        s.connect(('<broadcast>', 0))
+        return str(s.getsockname()[0])
 
-    def _get_current_interface(self):
-        interfaces_inf = None
-        interfaces = netifaces.interfaces()
-        for i in interfaces:
-            if i == 'lo':
-                continue
-            iface = netifaces.ifaddresses(i).get(netifaces.AF_INET)
-            if iface != None:
-                for j in iface:
-                    if j['addr'] == self.ip:
-                        interfaces_inf = j
-        return interfaces_inf
+    def get_netmask(self):
+        ip = IPRoute()
+        info = [{'iface': x['index'], 'addr': x.get_attr('IFA_ADDRESS'), 'mask': x['prefixlen']} for x in ip.get_addr()]
+        for i in info:
+            if str(i['addr']) == self.ip:
+                return str(i['mask'])
+
+    def get_network(self):
+        router_ip = self.ip.split('.')
+        router_ip[-1] = '1'
+        router_ip = ".".join(router_ip)
+        return router_ip
 
 
-host_finder = HostFinder()
-print(host_finder.get_server())

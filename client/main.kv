@@ -9,7 +9,7 @@
 
 
 <ListItemFile>:
-    IconLeftWidget:
+    IconFile:
         icon: root.icon
 
 
@@ -43,6 +43,9 @@
                 text: 'File storage'
             ChooseScreenButton:
                 text: 'Home'
+        RaisedButton:
+            text: 'connect to server'
+            on_press: app.client.connect_to_server()
 
 
 <FScreen>:

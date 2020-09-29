@@ -8,10 +8,11 @@ from kivy.uix.recycleview import RecycleView
 from kivymd.app import MDApp
 from kivymd.uix.behaviors import TouchBehavior
 from kivymd.uix.button import MDRaisedButton
-from kivymd.uix.list import OneLineIconListItem
+from kivymd.uix.list import OneLineIconListItem, IconLeftWidget, ImageLeftWidget
 from kivymd.uix.screen import Screen
 from kivymd.uix.toolbar import MDToolbar
 
+from client_functions import ClientFunction
 from file_manager import FileManagerLocal
 
 
@@ -41,6 +42,14 @@ class RV(RecycleView):
                       'text': str(os.path.basename(file[0])),
                       'icon': __return_icon(type_=file[1])}
                      for file in files]
+
+
+class IconFile(IconLeftWidget, ImageLeftWidget):
+    def __init__(self, **kwargs):
+        if self.parent.type == 'image':
+            kwargs['image'] = self.parent.type
+            kwargs['icon'] = None
+        super(IconFile, self).__init__(**kwargs)
 
 
 class ListItemFile(OneLineIconListItem, TouchBehavior):
@@ -114,6 +123,7 @@ class TestNavigationDrawer(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.file_manager = FileManagerLocal()
+        self.client = ClientFunction()
 
     def build(self):
         return Builder.load_file('main.kv')

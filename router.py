@@ -18,8 +18,11 @@ class SimpleRouter:
     def execute(self, msg):
         methods = {'get_system_information': Functions.get_system_information,
                    'welcome_to_server': Functions.welcome_to_server,
-                   'error': Functions.error}
-        url, *args = self.data_analysis(msg)
+                   'error': Functions.error,
+                   'print_msg': Functions.print_msg}
+        message = self.data_analysis(msg)
+        url = message[0]
+        args = message[1]
         if url in methods:
             if args:
                 return methods[url](Functions, *args)
@@ -32,6 +35,9 @@ class SimpleRouter:
 class Functions:
     def error(self):
         return 'error'
+
+    def print_msg(self, msg):
+        print(msg)
 
     def welcome_to_server(self):
         return 'welcome'
